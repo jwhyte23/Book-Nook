@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Book Nook">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" crossorigin="anonymous"></script>
 <style>
   :root {
@@ -1400,7 +1399,7 @@
     const letter = coverLetter(title);
     if (url) {
       preview.innerHTML = `<img src="${url}" style="width:80px;height:116px;border-radius:6px;object-fit:cover;box-shadow:var(--shadow);display:block;" onerror="this.parentElement.innerHTML='<div style=\'width:80px;height:116px;border-radius:6px;background:${col};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:rgba(255,255,255,0.85);box-shadow:var(--shadow);\'>${letter}</div><div style=\'font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;\'>No cover found</div>'">
-        <div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;">Via Open Library</div>`;
+        <div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;">Cover preview</div>`;
     } else {
       updateModalCoverPh();
     }
@@ -1412,7 +1411,7 @@
     const letter = coverLetter(title);
     const preview = document.getElementById('modal-cover-preview');
     if (!preview.querySelector('img')) {
-      preview.innerHTML = `<div style="width:80px;height:116px;border-radius:6px;background:${col};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:rgba(255,255,255,0.85);box-shadow:var(--shadow);">${letter}</div><div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;">No ISBN yet</div>`;
+      preview.innerHTML = `<div style="width:80px;height:116px;border-radius:6px;background:${col};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:rgba(255,255,255,0.85);box-shadow:var(--shadow);">${letter}</div><div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;">No cover yet</div>`;
     }
   }
 
@@ -1917,16 +1916,6 @@
     pendingCoverUrl = null;
     const book = id ? books.find(b => b.id === id) : null;
     document.getElementById('modal-title').textContent = book ? 'Edit Book' : 'Add Book';
-    const isbnInput = document.getElementById('f-isbn');
-    if (book?.asin) {
-      isbnInput.value = book.asin;
-      isbnInput.dataset.mode = 'asin';
-      isbnInput.dataset.asin = book.asin;
-    } else {
-      isbnInput.value = book?.isbn || '';
-      isbnInput.dataset.mode = 'isbn';
-      isbnInput.dataset.asin = '';
-    }
     document.getElementById('f-title').value = book?.title || '';
     document.getElementById('f-author').value = book?.author || '';
     document.getElementById('f-genre').value = book?.genre || '';
