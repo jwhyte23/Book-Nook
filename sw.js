@@ -1,4 +1,4 @@
-const CACHE_NAME = 'book-nook-v1';
+const CACHE_NAME = 'book-nook-v2';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 // Install: cache all assets
