@@ -1261,11 +1261,6 @@
             <option value="Anthology">📚 Anthology</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Reading Order #</label>
-          <input type="number" id="f-read-order" placeholder="e.g. 1.5" step="0.5" min="0">
-          <div class="field-hint">Can use decimals for novellas (e.g. 1.5 = between books 1 &amp; 2)</div>
-        </div>
         <div class="form-group full">
           <label>Reading Order Note</label>
           <input type="text" id="f-order-note" placeholder='e.g. "Best read after Book 2", "Optional but recommended"'>
@@ -1694,8 +1689,8 @@
 
       // Sort by universeOrder, fall back to readOrder, then seriesNum
       const sorted = [...uBooks].sort((a, b) => {
-        const ra = a.universeOrder ?? a.readOrder ?? a.seriesNum ?? 999;
-        const rb = b.universeOrder ?? b.readOrder ?? b.seriesNum ?? 999;
+        const ra = a.universeOrder ?? a.seriesNum ?? 999;
+        const rb = b.universeOrder ?? b.seriesNum ?? 999;
         return ra - rb;
       });
 
@@ -1719,7 +1714,7 @@
              <div class="ro-thumb-ph" style="background:${col};display:none;">${letter}</div>`
           : `<div class="ro-thumb-ph" style="background:${col};">${letter}</div>`;
 
-        const orderNum = b.universeOrder ?? b.readOrder ?? b.seriesNum ?? (i + 1);
+        const orderNum = b.universeOrder ?? b.seriesNum ?? (i + 1);
         const isOptional = OPTIONAL_TYPES.has(b.bookType);
 
         // Series color badge
@@ -1805,8 +1800,8 @@
     container.innerHTML = `<div class="ro-list">${Object.entries(grouped).map(([name, data]) => {
       // Sort by readOrder → seriesNum → insertion order
       const sorted = [...data.books].sort((a, b) => {
-        const ra = a.readOrder ?? a.seriesNum ?? 999;
-        const rb = b.readOrder ?? b.seriesNum ?? 999;
+        const ra = a.seriesNum ?? 999;
+        const rb = b.seriesNum ?? 999;
         return ra - rb;
       });
       const mainCount = sorted.filter(b => b.bookType === 'Main Novel' || !b.bookType).length;
@@ -1822,7 +1817,7 @@
              <div class="ro-thumb-ph" style="background:${col};display:none;">${letter}</div>`
           : `<div class="ro-thumb-ph" style="background:${col};">${letter}</div>`;
         const isOptional = OPTIONAL_TYPES.has(b.bookType);
-        const orderNum = b.readOrder ?? b.seriesNum ?? (i + 1);
+        const orderNum = b.seriesNum ?? (i + 1);
         const badgeCls = `badge badge-type-${typeClass(b.bookType||'Main Novel').replace('type-','')}`;
         const noteHtml = b.orderNote ? `<div class="ro-note">💡 ${escHtml(b.orderNote)}</div>` : '';
         const divider = i < sorted.length - 1 ? '<div class="ro-divider"></div>' : '';
@@ -1939,7 +1934,6 @@
     document.getElementById('f-universe').value = book?.universe || '';
     document.getElementById('f-universe-order').value = book?.universeOrder ?? '';
     document.getElementById('f-book-type').value = book?.bookType || 'Main Novel';
-    document.getElementById('f-read-order').value = book?.readOrder ?? '';
     document.getElementById('f-order-note').value = book?.orderNote || '';
     document.getElementById('f-date-started').value = book?.dateStarted || '';
     document.getElementById('f-date-finished').value = book?.dateFinished || '';
@@ -2060,7 +2054,6 @@
       universe: document.getElementById('f-universe').value.trim(),
       universeOrder: parseFloat(document.getElementById('f-universe-order').value) || null,
       bookType: document.getElementById('f-book-type').value,
-      readOrder: parseFloat(document.getElementById('f-read-order').value) || null,
       orderNote: document.getElementById('f-order-note').value.trim(),
       coverUrl: resolvedCoverUrl,
       dateStarted: document.getElementById('f-date-started').value || null,
