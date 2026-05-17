@@ -191,22 +191,9 @@
   .modal-close:hover { background: #f5f5f5; }
   .modal-body { padding: 0 24px 24px; }
 
-  /* ISBN lookup bar */
-  .isbn-bar { display: flex; gap: 8px; align-items: center; background: var(--accent-light); border: 1px solid #d8cef0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; }
-  .isbn-icon { font-size: 20px; flex-shrink: 0; }
-  .isbn-input-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-  .isbn-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
-  .isbn-input-row { display: flex; gap: 8px; }
-  .isbn-input-row input { flex: 1; padding: 7px 10px; border: 1px solid #d8cef0; border-radius: 7px; font-size: 13px; color: var(--text); background: #fff; outline: none; }
-  .isbn-input-row input:focus { border-color: var(--accent); }
-  .lookup-btn { padding: 7px 14px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
-  .lookup-btn:hover { background: var(--accent-hover); }
-  .lookup-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-  .isbn-hint { font-size: 10px; color: var(--text-muted); }
-  .isbn-status { font-size: 11px; margin-top: 4px; min-height: 14px; }
-  .isbn-status.ok { color: var(--physical); }
-  .isbn-status.err { color: var(--red); }
-  .isbn-status.loading { color: var(--accent); }
+  /* Goodreads link */
+  .gr-link-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 600; padding: 3px 8px; border-radius: 5px; background: var(--accent-light); border: 1px solid #d8cef0; margin-top: 4px; }
+  .gr-link-btn:hover { background: #e2d9f3; }
 
   /* Cover preview in modal */
   .modal-top { display: flex; gap: 16px; margin-bottom: 18px; }
@@ -1017,18 +1004,10 @@
     </div>
     <div class="modal-body">
 
-      <!-- ISBN / ASIN lookup -->
-      <div class="isbn-bar">
-        <div class="isbn-icon">🔎</div>
-        <div class="isbn-input-wrap">
-          <div class="isbn-label">Look up by ISBN</div>
-          <div class="isbn-input-row">
-            <input type="text" id="f-isbn" placeholder="e.g. 9780439023523 or 0439023521" maxlength="20">
-            <button class="lookup-btn" id="lookup-btn" onclick="lookupId()">Look up</button>
-          </div>
-          <div class="isbn-hint">Enter ISBN-10 or ISBN-13 → auto-fills title, author &amp; cover via Google Books</div>
-          <div class="isbn-status" id="isbn-status"></div>
-        </div>
+      <!-- Goodreads link -->
+      <div class="form-group full" style="margin-bottom:16px;">
+        <label>📗 Goodreads Link</label>
+        <input type="url" id="f-goodreads-url" placeholder="https://www.goodreads.com/book/show/…">
       </div>
 
       <!-- Manual cover fallback -->
@@ -1395,11 +1374,10 @@
     return COVER_COLORS[Math.abs(h) % COVER_COLORS.length];
   }
   function coverLetter(title) { return (title || '?').trim()[0].toUpperCase(); }
-  function isISBN(val) { const v = val.replace(/[-\s]/g,''); return /^\d{9}[\dX]$|^\d{13}$/.test(v); }
-  function coverUrl(isbn) { return isbn ? `https://covers.openlibrary.org/b/isbn/${isbn.replace(/[-\s]/g,'')}-M.jpg` : null; }
   function idCoverUrl(b) {
     if (b.coverUrl) return b.coverUrl;
-    if (b.isbn) return coverUrl(b.isbn); // fallback for older records without stored coverUrl
+    // Legacy fallback for older records that only have isbn stored
+    if (b.isbn) return `https://covers.openlibrary.org/b/isbn/${b.isbn}-M.jpg`;
     return null;
   }
 
@@ -1414,56 +1392,6 @@
     return `<div class="${cls.replace('book-cover-img','book-cover-placeholder').replace('list-thumb','list-thumb-ph').replace('series-book-cover','series-book-cover-ph').replace('release-cover','release-cover-placeholder')}" style="background:${col};width:${w}px;height:${h}px;">${letter}</div>`;
   }
 
-  // ── ISBN lookup via Google Books ──
-  async function lookupId() {
-    const raw = document.getElementById('f-isbn').value.trim();
-    if (!raw) { setIsbnStatus('Please enter an ISBN first.', 'err'); return; }
-    const btn = document.getElementById('lookup-btn');
-    btn.disabled = true; btn.textContent = '⏳ Looking up…';
-    pendingCoverUrl = null;
-    await lookupISBN(raw.replace(/[-\s]/g, ''));
-    btn.disabled = false; btn.textContent = 'Look up';
-  }
-
-  async function lookupISBN(isbn) {
-    setIsbnStatus('Searching Google Books…', 'loading');
-    try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
-      const data = await res.json();
-      if (!data.items?.length) { setIsbnStatus('Book not found. Try a different ISBN or fill in manually.', 'err'); return; }
-      const info = data.items[0].volumeInfo;
-      if (info.title) document.getElementById('f-title').value = info.title;
-      if (info.authors?.[0]) document.getElementById('f-author').value = info.authors[0];
-      if (info.categories?.[0]) {
-        const genreMap = {'fiction':'Fiction','fantasy':'Fantasy','romance':'Romance','mystery':'Mystery','thriller':'Thriller','horror':'Horror','science fiction':'Sci-Fi','biography':'Biography','history':'History','self-help':'Self-Help','young adult':'Young Adult','juvenile':'Young Adult'};
-        const lower = info.categories[0].toLowerCase();
-        let genre = info.categories[0];
-        for (const [k,v] of Object.entries(genreMap)) { if (lower.includes(k)) { genre = v; break; } }
-        document.getElementById('f-genre').value = genre;
-      }
-      if (info.publishedDate) {
-        const d = new Date(info.publishedDate);
-        if (!isNaN(d)) document.getElementById('f-pub-date').value = d.toISOString().split('T')[0];
-      }
-      if (info.pageCount) document.getElementById('f-pages').value = info.pageCount;
-      // Get cover — prefer thumbnail, convert to https, bump zoom for better quality
-      const thumb = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
-      if (thumb) {
-        pendingCoverUrl = thumb.replace(/^http:\/\//, 'https://').replace('zoom=1','zoom=0').replace('&edge=curl','');
-        updateModalCoverImg(pendingCoverUrl, isbn);
-      }
-      updateModalCoverPh();
-      setIsbnStatus('✓ Book found! Fields auto-filled.', 'ok');
-    } catch(e) {
-      setIsbnStatus('Could not fetch details — check your connection or fill in manually.', 'err');
-    }
-  }
-
-  function setIsbnStatus(msg, type) {
-    const el = document.getElementById('isbn-status');
-    el.textContent = msg;
-    el.className = `isbn-status ${type}`;
-  }
 
   function updateModalCoverImg(url, isbn) {
     const preview = document.getElementById('modal-cover-preview');
@@ -1638,6 +1566,7 @@
         ${lenStr}
         ${dnfStr}
         ${notesStr}
+        ${b.goodreadsUrl ? `<a class="gr-link-btn" href="${escHtml(b.goodreadsUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📗 Goodreads</a>` : ''}
         <div class="book-card-footer">
           <div class="stars-small">${starsHtml(b.rating||0)}</div>
           <span class="status-pill ${statusClass(b.status)}">${b.status||'Want to Read'}</span>
@@ -2035,7 +1964,6 @@
     document.getElementById('f-buy-notes').value = book?.buyNotes || '';
     // allTimeFav is toggled externally; just preserve it in save
     setRating(book?.rating || 0);
-    setIsbnStatus('', '');
     // Reset manual cover section
     document.getElementById('manual-cover-section').classList.remove('open');
     document.getElementById('manual-toggle-arrow').textContent = '▶';
@@ -2043,9 +1971,11 @@
     document.getElementById('f-cover-file').value = '';
     document.getElementById('url-cover-status').textContent = '';
     document.getElementById('upload-cover-status').textContent = '';
+    document.getElementById('f-goodreads-url').value = book?.goodreadsUrl || '';
     // Restore cover preview
-    if (book?.coverUrl || book?.isbn || book?.asin) {
-      updateModalCoverImg(book.coverUrl || coverUrl(book.isbn) || asinCoverUrl(book.asin), book.isbn);
+    if (book?.coverUrl || book?.isbn) {
+      const fallback = book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null;
+      updateModalCoverImg(book.coverUrl || fallback);
       pendingCoverUrl = book.coverUrl || null;
     } else {
       updateModalCoverPh();
@@ -2055,7 +1985,7 @@
     toggleStatusExtras();
     toggleBuyFields();
     document.getElementById('modal-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('f-isbn').focus(), 50);
+    setTimeout(() => document.getElementById('f-title').focus(), 50);
   }
   function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId = null; }
   function handleOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
@@ -2112,10 +2042,7 @@
     const title = document.getElementById('f-title').value.trim();
     const author = document.getElementById('f-author').value.trim();
     if (!title || !author) { alert('Please enter at least a title and author.'); return; }
-    const isbnInput = document.getElementById('f-isbn');
-    const rawId = isbnInput.value.trim();
-    const isbn = rawId.replace(/[-\s]/g,'');
-    const asin = '';
+    const goodreadsUrl = document.getElementById('f-goodreads-url').value.trim() || null;
     const fmt = document.getElementById('f-format').value;
     const editBook = editingId ? books.find(b => b.id === editingId) : null;
     const resolvedCoverUrl = pendingCoverUrl || (editBook?.coverUrl) || null;
@@ -2157,6 +2084,7 @@
       buyFrom: document.getElementById('f-buy-from').value.trim() || null,
       buyCost: parseFloat(document.getElementById('f-buy-cost').value) || null,
       buyNotes: document.getElementById('f-buy-notes').value.trim() || null,
+      goodreadsUrl,
     };
     if (editingId) { const idx = books.findIndex(b => b.id === editingId); books[idx] = book; }
     else { books.push(book); }
