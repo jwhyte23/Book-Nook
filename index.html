@@ -2037,7 +2037,7 @@
     const resolvedCoverUrl = pendingCoverUrl || (editBook?.coverUrl) || null;
     const book = {
       id: editingId || uid(),
-      isbn, asin, title, author,
+      title, author,
       genre: document.getElementById('f-genre').value.trim(),
       format: fmt,
       ku: fmt === 'Kindle' && document.getElementById('f-ku').checked,
@@ -3154,7 +3154,6 @@
 
   load(); renderAll(); renderLibrary();
 </script>
-
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
