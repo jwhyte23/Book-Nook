@@ -1,15 +1,15 @@
-const CACHE_NAME = 'book-nook-v2';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE_NAME = 'book-nook-v3';
+const STATIC_ASSETS = ['./icon-192.png', './icon-512.png', './apple-touch-icon.png', './manifest.json'];
 
-// Install: cache all assets
+// Install: pre-cache only static assets (not the HTML)
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // activate immediately
 });
 
-// Activate: clear old caches
+// Activate: clear any old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -19,12 +19,33 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: serve from cache, fall back to network
+// Fetch strategy:
+//   index.html → network first (always get latest), fall back to cache offline
+//   icons/manifest → cache first (they rarely change)
+//   external requests (Google Books API etc.) → network only, pass through
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  // Let external API calls (Google Books etc.) go straight to network
-  if (!event.request.url.startsWith(self.location.origin)) return;
 
+  const url = event.request.url;
+
+  // External requests: skip service worker entirely
+  if (!url.startsWith(self.location.origin)) return;
+
+  // HTML: network first so updates always load
+  if (url.endsWith('/') || url.includes('index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request)) // offline fallback
+    );
+    return;
+  }
+
+  // Static assets: cache first
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
