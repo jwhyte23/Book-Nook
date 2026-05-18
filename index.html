@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book Nook 📚</title>
-
 <!-- PWA -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#7c5cbf">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Book Nook">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="theme-color" content="#7c5cbf">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" crossorigin="anonymous"></script>
 <style>
   :root {
@@ -36,6 +36,7 @@
     --gift-light: #fdf6e3;
     --star: #f5a623;
     --red: #e53935;
+    --green: #3a8c6e;
     --shadow: 0 2px 8px rgba(0,0,0,0.08);
     --radius: 10px;
   }
@@ -139,7 +140,16 @@
   /* Series */
   .series-list { padding: 0 20px 24px; display: flex; flex-direction: column; gap: 16px; }
   .series-group { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .series-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--accent-light); }
+  .series-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--accent-light); cursor: pointer; user-select: none; }
+  .series-header:hover { background: #e8dff7; }
+  .collapse-chevron { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; margin-left: 8px; }
+  .series-group.collapsed .collapse-chevron,
+  .ro-series-block.collapsed .collapse-chevron,
+  .universe-block.collapsed .collapse-chevron { transform: rotate(-90deg); }
+  .series-group.collapsed .series-books-row,
+  .ro-series-block.collapsed .ro-steps,
+  .universe-block.collapsed .universe-series-chips,
+  .universe-block.collapsed .ro-steps { display: none; }
   .series-name { font-size: 15px; font-weight: 700; color: var(--accent); }
   .series-status-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
   .series-complete { background: var(--physical-light); color: var(--physical); }
@@ -283,7 +293,8 @@
   .series-view-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
   .ro-list { padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 24px; }
   .ro-series-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .ro-series-header { padding: 14px 18px; background: var(--accent); display: flex; align-items: center; justify-content: space-between; }
+  .ro-series-header { padding: 14px 18px; background: var(--accent); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .ro-series-header:hover { filter: brightness(1.08); }
   .ro-series-title { font-size: 15px; font-weight: 700; color: #fff; }
   .ro-series-meta { font-size: 11px; color: rgba(255,255,255,0.75); }
   .ro-series-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #fff; }
@@ -442,7 +453,8 @@
   /* 5-star grid — reuse book-grid */
   /* Book Boyfriends */
   .bbf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-  .bbf-card { border-radius: var(--radius); overflow: hidden; position: relative; cursor: default; box-shadow: var(--shadow); }
+  .bbf-card { border-radius: var(--radius); overflow: hidden; position: relative; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.15s, box-shadow 0.15s; }
+  .bbf-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
   .bbf-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.35) saturate(1.4); transform: scale(1.1); }
   .bbf-bg-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; font-weight: 900; opacity: 0.12; }
   .bbf-content { position: relative; z-index: 1; padding: 20px 16px 16px; min-height: 240px; display: flex; flex-direction: column; }
@@ -468,6 +480,9 @@
   .bbf-modal { background: var(--card); border-radius: 14px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
   .bbf-modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .bbf-modal-body { padding: 0 24px 24px; }
+  .bbf-link-toggle { display: flex; gap: 8px; margin-bottom: 8px; }
+  .bbf-link-toggle-btn { flex: 1; padding: 7px 12px; border: 1.5px solid #d8cef0; border-radius: 8px; background: #fff; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .bbf-link-toggle-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .vibe-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .vibe-chip { padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.15s; user-select: none; }
   .vibe-chip.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
@@ -554,7 +569,8 @@
 
   /* Universe view */
   .universe-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
-  .universe-header { padding: 16px 20px; background: linear-gradient(135deg, #2d2417 0%, #4a3670 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .universe-header { padding: 16px 20px; background: linear-gradient(135deg, #2d2417 0%, #4a3670 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; user-select: none; }
+  .universe-header:hover { filter: brightness(1.1); }
   .universe-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
   .universe-meta { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; }
   .universe-series-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--bg); }
@@ -569,6 +585,80 @@
   .confirm-actions { display: flex; gap: 10px; justify-content: center; }
   .btn-confirm-delete { padding: 10px 24px; border: none; border-radius: 8px; background: var(--red); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
   .btn-confirm-cancel { padding: 10px 20px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 14px; cursor: pointer; }
+
+  /* ── Spice Rating ── */
+  .chili-rating { display: flex; gap: 3px; }
+  .chili-rating span { font-size: 22px; cursor: pointer; opacity: 0.2; transition: opacity 0.1s; user-select: none; }
+  .chili-rating span.active { opacity: 1; }
+  .chili-small { font-size: 11px; letter-spacing: -1px; line-height: 1; }
+
+  /* ── Theme Picker ── */
+  .theme-toggle-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; color: var(--text-muted); transition: all 0.15s; white-space:nowrap; }
+  .theme-toggle-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .theme-picker-wrap { position: relative; }
+  .theme-picker-popover { display: none; position: absolute; top: calc(100% + 6px); right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.13); z-index: 500; min-width: 210px; }
+  .theme-picker-popover.open { display: block; }
+  .theme-picker-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .theme-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  .theme-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .theme-swatch:hover { transform: scale(1.15); }
+  .theme-swatch.active { border-color: #fff; box-shadow: 0 0 0 3px currentColor; outline: 2px solid transparent; }
+  .theme-swatch-name { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+  .theme-swatch-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+  /* ── Manga ── */
+  .manga-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); background: var(--card); }
+  .manga-series-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+  .manga-series-header { padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; background: var(--accent-light); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .manga-series-name { font-size: 15px; font-weight: 700; color: var(--accent); }
+  .manga-volumes-row { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+  .manga-vol-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .manga-vol-cover { width: 62px; height: 90px; border-radius: 5px; object-fit: cover; box-shadow: var(--shadow); }
+  .manga-vol-ph { width: 62px; height: 90px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: rgba(255,255,255,0.85); box-shadow: var(--shadow); }
+  .manga-vol-label { font-size: 10px; font-weight: 700; color: var(--text-muted); }
+  .manga-vol-status { width: 8px; height: 8px; border-radius: 50%; }
+  .manga-vol-status.finished { background: var(--green); }
+  .manga-vol-status.reading { background: var(--kindle); }
+  .manga-vol-status.want { background: var(--border); }
+  .manga-list-item { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: center; }
+  .manga-list-item:last-child { border-bottom: none; }
+  .manga-list-item:hover { background: var(--bg); }
+  .manga-badge { background: #e8f4ff; color: #2563eb; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+
+
+  /* ── Dark Mode ── */
+  [data-dark="1"] {
+    color-scheme: dark;
+    --bg: #12101a;
+    --card: #1e1a2e;
+    --border: #352e4f;
+    --text: #ede8ff;
+    --text-muted: #9b8fb5;
+    --accent-light: #2d2448;
+    --kindle-light: #2d200a;
+    --physical-light: #0d2018;
+    --audible-light: #091e28;
+    --ku-light: #2a0d0c;
+    --gift-light: #2a2005;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  [data-dark="1"] body { background: var(--bg); }
+  [data-dark="1"] input,
+  [data-dark="1"] select,
+  [data-dark="1"] textarea { background: #1a1530; color: var(--text); border-color: var(--border); }
+  [data-dark="1"] input::placeholder,
+  [data-dark="1"] textarea::placeholder { color: var(--text-muted); }
+  [data-dark="1"] .modal-box { background: var(--card); }
+  [data-dark="1"] .modal-box input,
+  [data-dark="1"] .modal-box select,
+  [data-dark="1"] .modal-box textarea { background: #12101a; }
+  [data-dark="1"] .stats-bar { background: var(--card); border-color: var(--border); }
+  [data-dark="1"] canvas { filter: brightness(0.9); }
+
+  /* Dark mode toggle button */
+  .darkmode-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; color: var(--text-muted); transition: all 0.15s; white-space: nowrap; }
+  .darkmode-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
 </style>
 </head>
 <body>
@@ -577,13 +667,14 @@
   <div class="header-left">
     <div class="logo">Book <span>Nook</span></div>
     <nav class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('library', this)">Library</button>
-      <button class="tab-btn" onclick="switchTab('tbr', this)">TBR</button>
-      <button class="tab-btn" onclick="switchTab('upcoming', this)">Upcoming</button>
-      <button class="tab-btn" onclick="switchTab('series', this)">Series</button>
-      <button class="tab-btn" onclick="switchTab('challenges', this)">🎯 Challenges</button>
+      <button class="tab-btn active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('tbr', this)">📚 TBR</button>
+      <button class="tab-btn" onclick="switchTab('library', this)">🏛️ Library</button>
+      <button class="tab-btn" onclick="switchTab('series', this)">🔖 Series</button>
+      <button class="tab-btn" onclick="switchTab('upcoming', this)">🗓️ Upcoming</button>
       <button class="tab-btn" onclick="switchTab('favourites', this)">❤️ Faves</button>
-      <button class="tab-btn" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('challenges', this)">🎯 Challenges</button>
+      <button class="tab-btn" onclick="switchTab('manga', this)">📕 Manga</button>
     </nav>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -592,7 +683,38 @@
       ⬆️ Import
       <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
     </label>
+    <button class="darkmode-btn" id="darkmode-btn" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+    <div class="theme-picker-wrap">
+      <button class="theme-toggle-btn" onclick="toggleThemePicker()" title="Change theme">🎨</button>
+      <div class="theme-picker-popover" id="theme-picker">
+        <div class="theme-picker-label">Choose Theme</div>
+        <div class="theme-swatches">
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#7c5cbf;color:#7c5cbf" data-theme="purple" onclick="applyTheme('purple')" title="Purple"></div><div class="theme-swatch-name">Purple</div></div>
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#c2447a;color:#c2447a" data-theme="rose" onclick="applyTheme('rose')" title="Rose"></div><div class="theme-swatch-name">Rose</div></div>
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#2a9d8f;color:#2a9d8f" data-theme="teal" onclick="applyTheme('teal')" title="Teal"></div><div class="theme-swatch-name">Teal</div></div>
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#3a5fa0;color:#3a5fa0" data-theme="navy" onclick="applyTheme('navy')" title="Navy"></div><div class="theme-swatch-name">Navy</div></div>
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#d4841a;color:#d4841a" data-theme="amber" onclick="applyTheme('amber')" title="Amber"></div><div class="theme-swatch-name">Amber</div></div>
+          <div class="theme-swatch-item"><div class="theme-swatch" style="background:#5a8a6e;color:#5a8a6e" data-theme="sage" onclick="applyTheme('sage')" title="Sage"></div><div class="theme-swatch-name">Sage</div></div>
+        </div>
+      </div>
+    </div>
     <button class="add-btn" onclick="openModal()">+ Add Book</button>
+  </div>
+</div>
+
+
+<!-- Manga -->
+<div class="tab-content" id="tab-manga">
+  <div class="manga-header">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:13px;font-weight:600;color:var(--text-muted);">View:</span>
+      <button class="series-view-btn active" id="manga-view-series-btn" onclick="setMangaView('series',this)">📚 By Series</button>
+      <button class="series-view-btn" id="manga-view-list-btn" onclick="setMangaView('list',this)">📋 All Volumes</button>
+    </div>
+  </div>
+  <div style="padding:16px 20px 32px;">
+    <div id="manga-series-container"></div>
+    <div id="manga-list-container" style="display:none;"></div>
   </div>
 </div>
 
@@ -601,7 +723,7 @@
 <div class="stats-bar" id="stats-bar"></div>
 
 <!-- Library -->
-<div class="tab-content active" id="tab-library">
+<div class="tab-content" id="tab-library">
   <div class="filter-bar">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
@@ -620,6 +742,7 @@
       <option value="Kindle">📱 Kindle</option>
       <option value="Physical">📖 Physical</option>
       <option value="Audible">🎧 Audible</option>
+      <option value="Manga">📕 Manga</option>
     </select>
     <select class="filter-select" id="filter-genre" onchange="renderLibrary()">
       <option value="">All Genres</option>
@@ -721,7 +844,7 @@
 <div class="bbf-overlay" id="bbf-overlay" onclick="if(event.target===this)closeBBFModal()">
   <div class="bbf-modal">
     <div class="bbf-modal-header">
-      <div class="modal-title">💕 Add a Book Boyfriend</div>
+      <div class="modal-title" id="bbf-modal-title">💕 Add a Book Boyfriend</div>
       <button class="modal-close" onclick="closeBBFModal()">×</button>
     </div>
     <div class="bbf-modal-body">
@@ -734,12 +857,16 @@
           <label>From (Book / Series) *</label>
           <input type="text" id="bbf-from" placeholder="e.g. House of Earth and Blood">
         </div>
-        <div class="form-group">
+        <div class="form-group full">
           <label>Link to book or series</label>
+          <div class="bbf-link-toggle">
+            <button type="button" class="bbf-link-toggle-btn active" id="bbf-toggle-series" onclick="setBBFLinkType('series')">📚 Series</button>
+            <button type="button" class="bbf-link-toggle-btn" id="bbf-toggle-standalone" onclick="setBBFLinkType('standalone')">📖 Standalone</button>
+          </div>
           <select id="bbf-book-link">
             <option value="">— None —</option>
           </select>
-          <div class="field-hint">Series → uses first book's cover &amp; adds a "View Series" button. Standalone → links directly to that book.</div>
+          <div class="field-hint" id="bbf-link-hint">Series → uses first book's cover &amp; adds a "View Series" button.</div>
         </div>
         <div class="form-group full">
           <label>His vibes</label>
@@ -770,7 +897,7 @@
 </div>
 
 <!-- Dashboard -->
-<div class="tab-content" id="tab-dashboard">
+<div class="tab-content active" id="tab-dashboard">
   <div class="dash-body">
     <!-- Stats overview -->
     <div class="dash-section">
@@ -1074,12 +1201,24 @@
             <option value="Physical">📖 Physical</option>
             <option value="Kindle">📱 Kindle</option>
             <option value="Audible">🎧 Audible</option>
+            <option value="Manga">📕 Manga</option>
           </select>
         </div>
         <!-- Pages — Physical & Kindle -->
         <div class="form-group" id="pages-group">
           <label>Pages</label>
           <input type="number" id="f-pages" placeholder="e.g. 432" min="1" step="1">
+        </div>
+        <!-- Chapters — Manga only -->
+        <div class="form-group" id="chapters-group" style="display:none">
+          <label id="chapters-label">Chapters</label>
+          <input type="number" id="f-chapters" placeholder="e.g. 200" min="1" step="1">
+        </div>
+        <!-- Volume — Manga only -->
+        <div class="form-group" id="manga-volume-group" style="display:none">
+          <label>Volume #</label>
+          <input type="number" id="f-volume" placeholder="e.g. 3" min="1" step="1">
+          <div class="field-hint">Which volume this entry covers</div>
         </div>
         <!-- Duration — Audible only -->
         <div class="form-group" id="duration-group" style="display:none">
@@ -1169,6 +1308,16 @@
             <span onclick="setRating(3)">★</span>
             <span onclick="setRating(4)">★</span>
             <span onclick="setRating(5)">★</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Spice 🌶️</label>
+          <div class="chili-rating" id="chili-rating">
+            <span onclick="setSpiceRating(1)">🌶️</span>
+            <span onclick="setSpiceRating(2)">🌶️</span>
+            <span onclick="setSpiceRating(3)">🌶️</span>
+            <span onclick="setSpiceRating(4)">🌶️</span>
+            <span onclick="setSpiceRating(5)">🌶️</span>
           </div>
         </div>
         <!-- Current page — visible when Reading/Listening -->
@@ -1293,8 +1442,9 @@
   let editingId = null;
   let pendingDeleteId = null;
   let currentRating = 0;
+  let currentSpiceRating = 0;
   let currentView = 'grid';
-  let currentTab = 'library';
+  let currentTab = 'dashboard';
   let pendingCoverUrl = null;
 
 
@@ -1424,6 +1574,7 @@
     if (tab === 'challenges') renderChallengesTab();
     if (tab === 'favourites') renderFavouritesTab();
     if (tab === 'dashboard') renderDashboard();
+    if (tab === 'manga') renderManga();
   }
 
   // ── Stats ──
@@ -1562,7 +1713,10 @@
         ${notesStr}
         ${b.goodreadsUrl ? `<a class="gr-link-btn" href="${escHtml(b.goodreadsUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📗 Goodreads</a>` : ''}
         <div class="book-card-footer">
-          <div class="stars-small">${starsHtml(b.rating||0)}</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="stars-small">${starsHtml(b.rating||0)}</div>
+            ${b.spiceRating ? `<span class="chili-small">${'🌶️'.repeat(b.spiceRating)}</span>` : ''}
+          </div>
           <span class="status-pill ${statusClass(b.status)}">${b.status||'Want to Read'}</span>
         </div>
       </div>
@@ -1756,12 +1910,13 @@
         </div>${divider}`;
       }).join('');
 
-      return `<div class="universe-block">
-        <div class="universe-header">
+      return `<div class="universe-block" data-collapse-key="universe:${escHtml(universeName)}">
+        <div class="universe-header" onclick="toggleSeriesCollapse(this)">
           <div>
             <div class="universe-title">🌌 ${escHtml(universeName)}</div>
             <div class="universe-meta">${allSeries.length} series · ${total} books · ${finished} finished${reading ? ` · ${reading} in progress` : ''}</div>
           </div>
+          <span class="collapse-chevron" style="color:rgba(255,255,255,0.7)">▼</span>
         </div>
         ${allSeries.length ? `<div class="universe-series-chips"><span style="font-size:11px;color:var(--text-muted);font-weight:600;align-self:center;">Series:</span> ${legendHtml}</div>` : ''}
         <div class="ro-steps">
@@ -1769,7 +1924,8 @@
           ${stepsHtml}
         </div>
       </div>`;
-    }).join('')
+    }).join('');
+    getCollapsed().forEach(key => { const el = container.querySelector(`[data-collapse-key="${key}"]`); if(el) el.classList.add('collapsed'); });
   }
 
   // ── Reading Order ──
@@ -1849,13 +2005,16 @@
         </div>${divider}`;
       }).join('');
 
-      return `<div class="ro-series-block">
-        <div class="ro-series-header">
+      return `<div class="ro-series-block" data-collapse-key="order:${escHtml(name)}">
+        <div class="ro-series-header" onclick="toggleSeriesCollapse(this)">
           <div>
             <div class="ro-series-title">📚 ${escHtml(name)}</div>
             <div class="ro-series-meta">${mainCount} main book${mainCount!==1?'s':''} · ${total} total · ${finished}/${total} read</div>
           </div>
-          <span class="ro-series-status">${data.complete ? 'Complete' : 'Ongoing'}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ro-series-status">${data.complete ? 'Complete' : 'Ongoing'}</span>
+            <span class="collapse-chevron" style="color:rgba(255,255,255,0.7)">▼</span>
+          </div>
         </div>
         <div class="ro-steps">
           <div class="ro-connector"></div>
@@ -1863,6 +2022,71 @@
         </div>
       </div>`;
     }).join('')}</div>`;
+    getCollapsed().forEach(key => { const el = container.querySelector(`[data-collapse-key="${key}"]`); if(el) el.classList.add('collapsed'); });
+  }
+
+
+  // ── Themes ──
+  const THEMES = {
+    purple: { accent: '#7c5cbf', light: '#f0eaf9', hover: '#6447a8' },
+    rose:   { accent: '#c2447a', light: '#fceaf3', hover: '#a83566' },
+    teal:   { accent: '#2a9d8f', light: '#e0f5f3', hover: '#1f7a6e' },
+    navy:   { accent: '#3a5fa0', light: '#eaeff8', hover: '#2c4880' },
+    amber:  { accent: '#d4841a', light: '#fef3e0', hover: '#b56d10' },
+    sage:   { accent: '#5a8a6e', light: '#eaf4ee', hover: '#446e55' },
+  };
+  function applyTheme(name) {
+    const t = THEMES[name]; if (!t) return;
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.accent);
+    r.style.setProperty('--accent-light', t.light);
+    r.style.setProperty('--accent-hover', t.hover);
+    lsSet('booknook_theme', name);
+    document.querySelectorAll('.theme-swatch').forEach(s => {
+      s.classList.toggle('active', s.dataset.theme === name);
+      if (s.dataset.theme === name) s.style.boxShadow = `0 0 0 3px ${t.accent}`;
+      else s.style.boxShadow = '0 1px 3px rgba(0,0,0,0.15)';
+    });
+    if (typeof dashCharts !== 'undefined') {
+      if (dashCharts['monthly']) { dashCharts['monthly'].data.datasets[0].backgroundColor = t.accent; dashCharts['monthly'].update(); }
+    }
+    document.getElementById('theme-picker').classList.remove('open');
+  }
+
+  function toggleDarkMode() {
+    const isDark = document.documentElement.getAttribute('data-dark') === '1';
+    setDarkMode(!isDark);
+  }
+  function setDarkMode(on) {
+    document.documentElement.setAttribute('data-dark', on ? '1' : '0');
+    const btn = document.getElementById('darkmode-btn');
+    if (btn) btn.textContent = on ? '☀️' : '🌙';
+    lsSet('booknook_dark', on ? '1' : '0');
+  }
+
+  function toggleThemePicker() { document.getElementById('theme-picker').classList.toggle('open'); }
+  document.addEventListener('click', e => {
+    const p = document.getElementById('theme-picker');
+    if (p && !e.target.closest('.theme-picker-wrap')) p.classList.remove('open');
+  });
+
+  const COLLAPSED_KEY = 'booknook_collapsed';
+  function getCollapsed() { try { return new Set(JSON.parse(lsGet(COLLAPSED_KEY) || '[]')); } catch(e) { return new Set(); } }
+  function saveCollapsed(set) { lsSet(COLLAPSED_KEY, JSON.stringify([...set])); }
+
+  function toggleSeriesCollapse(el) {
+    const block = el.closest('.series-group, .ro-series-block, .universe-block');
+    const key = block.dataset.collapseKey;
+    block.classList.toggle('collapsed');
+    const collapsed = getCollapsed();
+    if (block.classList.contains('collapsed')) collapsed.add(key);
+    else collapsed.delete(key);
+    saveCollapsed(collapsed);
+  }
+
+  function applyCollapsed(block, key) {
+    block.dataset.collapseKey = key;
+    if (getCollapsed().has(key)) block.classList.add('collapsed');
   }
 
   // ── Series ──
@@ -1878,10 +2102,13 @@
     if (!Object.keys(grouped).length) { container.innerHTML = `<div class="empty-state"><div class="icon">📖</div><p>No series tracked yet</p></div>`; return; }
     container.innerHTML = `<div class="series-list">${Object.entries(grouped).map(([name, data]) => {
       const sorted = data.books.sort((a,b)=>(a.seriesNum||999)-(b.seriesNum||999));
-      return `<div class="series-group">
-        <div class="series-header">
+      return `<div class="series-group" data-collapse-key="shelf:${escHtml(name)}">
+        <div class="series-header" onclick="toggleSeriesCollapse(this)">
           <div class="series-name">📚 ${escHtml(name)}</div>
-          <span class="series-status-badge ${data.complete?'series-complete':'series-ongoing'}">${data.complete?'Complete':'Ongoing'}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="series-status-badge ${data.complete?'series-complete':'series-ongoing'}">${data.complete?'Complete':'Ongoing'}</span>
+            <span class="collapse-chevron">▼</span>
+          </div>
         </div>
         <div class="series-books-row">
           ${sorted.map(b => {
@@ -1902,12 +2129,14 @@
         </div>
       </div>`;
     }).join('')}</div>`;
+    getCollapsed().forEach(key => { const el = container.querySelector(`[data-collapse-key="${key}"]`); if(el) el.classList.add('collapsed'); });
   }
 
   // ── Modal ──
   function openModal(id) {
     editingId = id || null;
     currentRating = 0;
+    currentSpiceRating = 0;
     pendingCoverUrl = null;
     const book = id ? books.find(b => b.id === id) : null;
     document.getElementById('modal-title').textContent = book ? 'Edit Book' : 'Add Book';
@@ -1947,6 +2176,9 @@
     document.getElementById('f-buy-notes').value = book?.buyNotes || '';
     // allTimeFav is toggled externally; just preserve it in save
     setRating(book?.rating || 0);
+    setSpiceRating(book?.spiceRating || 0);
+    document.getElementById('f-chapters').value = book?.chapters || '';
+    document.getElementById('f-volume').value = book?.volume || '';
     // Reset manual cover section
     document.getElementById('manual-cover-section').classList.remove('open');
     document.getElementById('manual-toggle-arrow').textContent = '▶';
@@ -1976,17 +2208,23 @@
   function toggleFormatExtras() {
     const fmt = document.getElementById('f-format').value;
     const isAudible = fmt === 'Audible';
+    const isManga   = fmt === 'Manga';
     document.getElementById('ku-group').style.visibility = fmt === 'Kindle' ? 'visible' : 'hidden';
     document.getElementById('credit-group').style.display = isAudible ? 'flex' : 'none';
     if (isAudible) { document.getElementById('credit-group').style.flexDirection = 'column'; document.getElementById('credit-group').style.gap = '5px'; }
     if (fmt !== 'Kindle') document.getElementById('f-ku').checked = false;
     if (!isAudible) document.getElementById('f-credit').checked = false;
-    // Pages vs Duration
-    document.getElementById('pages-group').style.display = isAudible ? 'none' : 'flex';
+    // Pages vs Duration vs Chapters(Manga)
+    document.getElementById('pages-group').style.display = (isAudible || isManga) ? 'none' : 'flex';
     document.getElementById('pages-group').style.flexDirection = 'column';
     document.getElementById('pages-group').style.gap = '5px';
     document.getElementById('duration-group').style.display = isAudible ? 'flex' : 'none';
     if (isAudible) { document.getElementById('duration-group').style.flexDirection = 'column'; document.getElementById('duration-group').style.gap = '5px'; }
+    // Manga fields
+    const chapGrp = document.getElementById('chapters-group');
+    const volGrp  = document.getElementById('manga-volume-group');
+    if (chapGrp) { chapGrp.style.display = isManga ? 'flex' : 'none'; chapGrp.style.flexDirection = 'column'; chapGrp.style.gap = '5px'; }
+    if (volGrp)  { volGrp.style.display  = isManga ? 'flex' : 'none'; volGrp.style.flexDirection  = 'column'; volGrp.style.gap  = '5px'; }
     const statusSel = document.getElementById('f-status');
     if (isAudible && statusSel.value === 'Reading') statusSel.value = 'Listening';
     if (!isAudible && statusSel.value === 'Listening') statusSel.value = 'Reading';
@@ -2020,6 +2258,10 @@
     currentRating = val;
     document.querySelectorAll('#star-rating span').forEach((s, i) => s.classList.toggle('active', i < val));
   }
+  function setSpiceRating(val) {
+    currentSpiceRating = (val === currentSpiceRating) ? 0 : val;
+    document.querySelectorAll('#chili-rating span').forEach((s, i) => s.classList.toggle('active', i < currentSpiceRating));
+  }
 
   function saveBook() {
     const title = document.getElementById('f-title').value.trim();
@@ -2045,6 +2287,9 @@
       price: document.getElementById('f-gift').checked ? 0 : (parseFloat(document.getElementById('f-price').value)||0),
       status: document.getElementById('f-status').value,
       rating: currentRating,
+      spiceRating: currentSpiceRating,
+      chapters: parseInt(document.getElementById('f-chapters').value) || null,
+      volume: parseInt(document.getElementById('f-volume').value) || null,
       pubDate: document.getElementById('f-pub-date').value,
       upcoming: document.getElementById('f-upcoming').checked,
       notes: document.getElementById('f-notes').value.trim(),
@@ -2244,6 +2489,7 @@
   function renderAll() {
     renderStats();
     if (currentTab === 'library') renderLibrary();
+    if (currentTab === 'manga') renderManga();
     if (currentTab === 'tbr') renderTBR();
     if (currentTab === 'upcoming') renderUpcoming();
     if (currentTab === 'series') {
@@ -2341,6 +2587,34 @@
 
   function loadBBFs() { try { bbfs = JSON.parse(lsGet(BBF_KEY) || '[]'); } catch(e) { bbfs = []; } }
   function saveBBFs() { lsSet(BBF_KEY, JSON.stringify(bbfs)); }
+  let editingBBFId = null;
+  let bbfLinkType = 'series'; // 'series' or 'standalone'
+
+  function setBBFLinkType(type) {
+    bbfLinkType = type;
+    document.getElementById('bbf-toggle-series').classList.toggle('active', type === 'series');
+    document.getElementById('bbf-toggle-standalone').classList.toggle('active', type === 'standalone');
+    document.getElementById('bbf-link-hint').textContent = type === 'series'
+      ? 'Series → uses first book\'s cover & adds a "View Series" button.'
+      : 'Standalone → links directly to that book\'s entry.';
+    populateBBFDropdown();
+  }
+
+  function populateBBFDropdown(preselect) {
+    const sel = document.getElementById('bbf-book-link');
+    let html = '<option value="">— None —</option>';
+    if (bbfLinkType === 'series') {
+      const seriesMap = {};
+      books.forEach(b => { if (b.series) { seriesMap[b.series] = true; } });
+      const seriesNames = Object.keys(seriesMap).sort();
+      seriesNames.forEach(name => { html += `<option value="series:${escHtml(name)}">📚 ${escHtml(name)}</option>`; });
+    } else {
+      const standalones = books.filter(b => !b.series);
+      standalones.forEach(b => { html += `<option value="book:${b.id}">📖 ${escHtml(b.title)}</option>`; });
+    }
+    sel.innerHTML = html;
+    if (preselect) sel.value = preselect;
+  }
 
   function toggleAllTimeFav(bookId) {
     const b = books.find(x => x.id === bookId);
@@ -2435,7 +2709,7 @@
         : `background:${col};filter:brightness(0.4);`;
       const vibeHtml = (bf.vibes || []).map(v => `<span class="bbf-vibe">${v}</span>`).join('');
       const heart = BBF_HEARTS[Math.abs(bf.name.charCodeAt(0) + bf.name.charCodeAt(1||0)) % BBF_HEARTS.length];
-      return `<div class="bbf-card">
+      return `<div class="bbf-card" onclick="openBBFModal('${bf.id}')">
         <div class="bbf-bg" style="${bgStyle}"></div>
         <div class="bbf-content">
           <div class="bbf-heart">${heart}</div>
@@ -2443,7 +2717,7 @@
           <div class="bbf-from">from ${escHtml(bf.from)}</div>
           ${vibeHtml ? `<div class="bbf-vibes">${vibeHtml}</div>` : ''}
           ${bf.desc ? `<div class="bbf-desc">${escHtml(bf.desc)}</div>` : ''}
-          <div class="bbf-actions">
+          <div class="bbf-actions" onclick="event.stopPropagation()">
             ${viewBtn}
             <button class="bbf-delete" onclick="deleteBBF('${bf.id}')">Remove</button>
           </div>
@@ -2464,38 +2738,38 @@
   }
 
   // ── BBF Modal ──
-  function openBBFModal() {
-    selectedVibes = [];
-    document.getElementById('bbf-name').value = '';
-    document.getElementById('bbf-from').value = '';
-    document.getElementById('bbf-desc').value = '';
+  function openBBFModal(id) {
+    editingBBFId = id || null;
+    const bf = id ? bbfs.find(b => b.id === id) : null;
 
-    // Populate dropdown: series first, then standalone books
-    const sel = document.getElementById('bbf-book-link');
-    const seriesMap = {};
-    books.forEach(b => { if (b.series) { if (!seriesMap[b.series]) seriesMap[b.series] = []; seriesMap[b.series].push(b); } });
-    const seriesNames = Object.keys(seriesMap).sort();
-    const standalones = books.filter(b => !b.series);
+    document.getElementById('bbf-modal-title').textContent = bf ? '✏️ Edit Book Boyfriend' : '💕 Add a Book Boyfriend';
+    document.getElementById('bbf-name').value = bf?.name || '';
+    document.getElementById('bbf-from').value = bf?.from || '';
+    document.getElementById('bbf-desc').value = bf?.desc || '';
+    selectedVibes = bf ? [...(bf.vibes || [])] : [];
 
-    let html = '<option value="">— None —</option>';
-    if (seriesNames.length) {
-      html += '<optgroup label="📚 Series">';
-      seriesNames.forEach(name => { html += `<option value="series:${escHtml(name)}">📚 ${escHtml(name)}</option>`; });
-      html += '</optgroup>';
-    }
-    if (standalones.length) {
-      html += '<optgroup label="📖 Standalone Books">';
-      standalones.forEach(b => { html += `<option value="book:${b.id}">📖 ${escHtml(b.title)}</option>`; });
-      html += '</optgroup>';
-    }
-    sel.innerHTML = html;
+    // Set toggle based on existing link type, default to series
+    const type = bf?.bookId ? 'standalone' : 'series';
+    bbfLinkType = type;
+    document.getElementById('bbf-toggle-series').classList.toggle('active', type === 'series');
+    document.getElementById('bbf-toggle-standalone').classList.toggle('active', type === 'standalone');
+    document.getElementById('bbf-link-hint').textContent = type === 'series'
+      ? 'Series → uses first book\'s cover & adds a "View Series" button.'
+      : 'Standalone → links directly to that book\'s entry.';
 
-    // Vibe picker
+    // Populate dropdown and pre-select if editing
+    const preselect = bf?.seriesName ? `series:${bf.seriesName}` : bf?.bookId ? `book:${bf.bookId}` : null;
+    populateBBFDropdown(preselect);
+
+    // Vibe picker — pre-select existing vibes
     const picker = document.getElementById('vibe-picker');
-    picker.innerHTML = BBF_VIBES.map(v => `<span class="vibe-chip" onclick="toggleVibe('${v}', this)">${v}</span>`).join('');
+    picker.innerHTML = BBF_VIBES.map(v =>
+      `<span class="vibe-chip${selectedVibes.includes(v) ? ' selected' : ''}" onclick="toggleVibe('${v}', this)">${v}</span>`
+    ).join('');
+
     document.getElementById('bbf-overlay').classList.add('open');
   }
-  function closeBBFModal() { document.getElementById('bbf-overlay').classList.remove('open'); }
+  function closeBBFModal() { document.getElementById('bbf-overlay').classList.remove('open'); editingBBFId = null; }
   function toggleVibe(v, el) {
     el.classList.toggle('selected');
     if (selectedVibes.includes(v)) selectedVibes = selectedVibes.filter(x => x !== v);
@@ -2509,12 +2783,18 @@
     let bookId = null, seriesName = null;
     if (linkVal.startsWith('book:')) bookId = linkVal.slice(5);
     else if (linkVal.startsWith('series:')) seriesName = linkVal.slice(7);
-    else if (linkVal) bookId = linkVal; // backward compat: old entries stored raw bookId
-    bbfs.push({
-      id: uid(), name, from, bookId, seriesName,
+    else if (linkVal) bookId = linkVal;
+    const entry = {
+      id: editingBBFId || uid(), name, from, bookId, seriesName,
       vibes: [...selectedVibes],
       desc: document.getElementById('bbf-desc').value.trim(),
-    });
+    };
+    if (editingBBFId) {
+      const idx = bbfs.findIndex(b => b.id === editingBBFId);
+      if (idx !== -1) bbfs[idx] = entry;
+    } else {
+      bbfs.push(entry);
+    }
     saveBBFs();
     closeBBFModal();
     renderBBFGrid();
@@ -2538,6 +2818,101 @@
   function saveChallenges() { lsSet(CHALLENGES_KEY, JSON.stringify(challenges)); }
   function saveBotm()       { lsSet(BOTM_KEY,       JSON.stringify(botmData)); }
   function saveQuotes()     { lsSet(QUOTES_KEY,      JSON.stringify(quotes)); }
+
+
+  // ── Manga ──
+  let mangaView = 'series';
+  function setMangaView(view, btn) {
+    mangaView = view;
+    document.querySelectorAll('.series-view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('manga-series-container').style.display = view === 'series' ? '' : 'none';
+    document.getElementById('manga-list-container').style.display   = view === 'list'   ? '' : 'none';
+  }
+
+  function renderManga() {
+    const mangaBooks = books.filter(b => b.format === 'Manga');
+    renderMangaSeries(mangaBooks);
+    renderMangaList(mangaBooks);
+  }
+
+  function renderMangaSeries(mangaBooks) {
+    const container = document.getElementById('manga-series-container');
+    if (!mangaBooks.length) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">📕</div><p>No manga tracked yet</p><small>Add a book with format "Manga" to get started.</small></div>`;
+      return;
+    }
+    // Group by series; ungrouped entries get their own block
+    const grouped = {};
+    mangaBooks.forEach(b => {
+      const key = b.series || ('__solo__' + b.id);
+      if (!grouped[key]) grouped[key] = { name: b.series || b.title, solo: !b.series, books: [] };
+      grouped[key].books.push(b);
+    });
+    container.innerHTML = Object.values(grouped).map(g => {
+      const sorted = g.books.sort((a, b) => (a.volume || a.seriesNum || 999) - (b.volume || b.seriesNum || 999));
+      const finished = sorted.filter(b => b.status === 'Finished').length;
+      const volumesHtml = sorted.map(b => {
+        const url = idCoverUrl(b);
+        const col = coverColor(b.title);
+        const letter = coverLetter(b.title);
+        const imgHtml = url
+          ? `<img class="manga-vol-cover" src="${url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+             <div class="manga-vol-ph" style="background:${col};display:none;">${letter}</div>`
+          : `<div class="manga-vol-ph" style="background:${col};">${letter}</div>`;
+        const volNum = b.volume || b.seriesNum;
+        const statusDot = b.status === 'Finished' ? 'finished' : (b.status === 'Reading' ? 'reading' : 'want');
+        return `<div class="manga-vol-item" onclick="openModal('${b.id}')" title="${escHtml(b.title)}">
+          ${imgHtml}
+          <div class="manga-vol-label">${volNum ? `Vol. ${volNum}` : escHtml(b.title.slice(0,8))}</div>
+          <div class="manga-vol-status ${statusDot}" title="${b.status}"></div>
+        </div>`;
+      }).join('');
+      return `<div class="manga-series-block">
+        <div class="manga-series-header">
+          <div>
+            <div class="manga-series-name">📕 ${escHtml(g.name)}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${sorted.length} vol${sorted.length!==1?'s':''} · ${finished} finished</div>
+          </div>
+          <span class="series-status-badge ${finished===sorted.length&&sorted.length>0?'series-complete':'series-ongoing'}">${finished===sorted.length&&sorted.length>0?'Complete':'Ongoing'}</span>
+        </div>
+        <div class="manga-volumes-row">${volumesHtml}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderMangaList(mangaBooks) {
+    const container = document.getElementById('manga-list-container');
+    if (!mangaBooks.length) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">📕</div><p>No manga tracked yet</p></div>`;
+      return;
+    }
+    const sorted = [...mangaBooks].sort((a, b) => (a.series||a.title).localeCompare(b.series||b.title));
+    container.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">${sorted.map(b => {
+      const url = idCoverUrl(b);
+      const col = coverColor(b.title);
+      const letter = coverLetter(b.title);
+      const thumbHtml = url
+        ? `<img style="width:42px;height:60px;border-radius:4px;object-fit:cover;flex-shrink:0;" src="${url}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+           <div style="width:42px;height:60px;border-radius:4px;background:${col};display:none;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:rgba(255,255,255,0.85);flex-shrink:0;">${letter}</div>`
+        : `<div style="width:42px;height:60px;border-radius:4px;background:${col};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:rgba(255,255,255,0.85);flex-shrink:0;">${letter}</div>`;
+      const volNum = b.volume || b.seriesNum;
+      return `<div class="manga-list-item" onclick="openModal('${b.id}')">
+        ${thumbHtml}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(b.title)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${escHtml(b.author)}</div>
+          ${b.series ? `<div style="font-size:11px;color:var(--accent);font-weight:600;">${escHtml(b.series)}${volNum ? ` · Vol. ${volNum}` : ''}</div>` : ''}
+          ${b.chapters ? `<div style="font-size:11px;color:var(--text-muted);">${b.chapters} chapters</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <span class="status-pill ${statusClass(b.status)}" style="font-size:10px;">${b.status}</span>
+          <span class="manga-badge">📕 Manga</span>
+          ${b.spiceRating ? `<span class="chili-small">${'🌶️'.repeat(b.spiceRating)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
 
   function renderDashboard() {
     loadDashData();
@@ -2615,7 +2990,7 @@
         <div class="pace-sub">across ${daysPerBook.length} book${daysPerBook.length!==1?'s':''}</div>
       </div>
       <div class="pace-stat">
-        <div class="pace-val">${fastest.days}</div>
+        <div class="pace-val">${fastest.days} <span style="font-size:14px;font-weight:500;color:var(--text-muted)">day${fastest.days===1?'':'s'}</span></div>
         <div class="pace-lbl">⚡ Fastest Read</div>
         <div class="pace-sub">${escHtml(fastestTitle)}</div>
       </div>
@@ -3146,12 +3521,19 @@
   }
 
   load(); renderAll(); renderLibrary();
+  // Apply saved dark mode
+  if (lsGet('booknook_dark') === '1') setDarkMode(true);
+  // Apply saved theme
+  const _savedTheme = lsGet('booknook_theme');
+  if (_savedTheme && THEMES[_savedTheme]) applyTheme(_savedTheme);
 </script>
+
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .catch(err => console.log('SW registration failed:', err));
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(r => console.log("SW registered:", r.scope))
+        .catch(e => console.warn("SW registration failed:", e));
     });
   }
 </script>
