@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book Nook 📚</title>
-<!-- PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Book Nook">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<meta name="theme-color" content="#7c5cbf">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" crossorigin="anonymous"></script>
 <style>
   :root {
@@ -69,10 +61,11 @@
 
   /* Filter bar */
   .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 16px; align-items: center; }
-  .search-wrap { position: relative; flex: 1; min-width: 180px; }
-  .search-wrap input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; color: var(--text); outline: none; }
-  .search-wrap input:focus { border-color: var(--accent); }
-  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; pointer-events: none; }
+  .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 180px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+  .search-wrap:focus-within { border-color: var(--accent); }
+  .search-wrap input { flex: 1; padding: 8px 0; border: none; background: transparent; font-size: 13px; color: var(--text); outline: none; }
+  .search-wrap input:focus { border-color: transparent; }
+  .search-icon { color: var(--text-muted); pointer-events: none; display: flex; align-items: center; flex-shrink: 0; }
   .filter-select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
   .filter-select:focus { border-color: var(--accent); }
   .clear-btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 13px; color: var(--text-muted); cursor: pointer; }
@@ -206,10 +199,23 @@
 
   /* Cover preview in modal */
   .modal-top { display: flex; gap: 16px; margin-bottom: 18px; }
-  .modal-cover-preview { flex-shrink: 0; width: 80px; }
+
+  /* ── Interactive cover preview ── */
+  .modal-cover-preview { flex-shrink: 0; width: 80px; position: relative; cursor: pointer; }
   .modal-cover-preview img { width: 80px; height: 116px; border-radius: 6px; object-fit: cover; box-shadow: var(--shadow); display: block; }
-  .modal-cover-preview .cover-ph { width: 80px; height: 116px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.85); box-shadow: var(--shadow); }
+  .modal-cover-preview .cover-ph { width: 80px; height: 116px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 22px; font-weight: 900; color: rgba(255,255,255,0.9); box-shadow: var(--shadow); transition: filter 0.15s; border: 2px dashed rgba(255,255,255,0.4); }
   .modal-cover-preview .cover-ph-label { font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 4px; }
+  .cover-upload-overlay { position: absolute; top: 0; left: 0; width: 80px; height: 116px; border-radius: 6px; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+  .cover-upload-overlay span { font-size: 18px; }
+  .cover-upload-overlay small { font-size: 9px; color: #fff; font-weight: 600; text-align: center; line-height: 1.3; }
+  label:hover .cover-upload-overlay,
+  .modal-cover-preview.drag-over .cover-upload-overlay { opacity: 1; }
+  .modal-cover-preview.drag-over .cover-ph,
+  .modal-cover-preview.drag-over img { filter: brightness(0.6); }
+  label:hover .cover-ph,
+  label:hover img { filter: brightness(0.75); }
+  #cover-click-input { display: none; }
+
 
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .form-group { display: flex; flex-direction: column; gap: 5px; }
@@ -270,10 +276,11 @@
   .tbr-pill { padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
   .tbr-pill.active { border-color: var(--accent); background: var(--accent); color: #fff; }
   .tbr-pill:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-  .tbr-search { position: relative; margin-left: auto; }
-  .tbr-search input { padding: 6px 12px 6px 30px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; background: var(--card); color: var(--text); outline: none; width: 180px; }
-  .tbr-search input:focus { border-color: var(--accent); }
-  .tbr-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); pointer-events: none; }
+  .tbr-search { display: flex; align-items: center; gap: 6px; margin-left: auto; padding: 0 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); width: 200px; }
+  .tbr-search:focus-within { border-color: var(--accent); }
+  .tbr-search input { flex: 1; padding: 6px 0; border: none; background: transparent; font-size: 12px; color: var(--text); outline: none; }
+  .tbr-search input:focus { border-color: transparent; }
+  .tbr-search-icon { color: var(--text-muted); pointer-events: none; display: flex; align-items: center; flex-shrink: 0; }
   .tbr-sort { padding: 6px 10px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); font-size: 12px; color: var(--text); outline: none; cursor: pointer; }
   .tbr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; padding: 0 20px 24px; }
   .tbr-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
@@ -659,7 +666,22 @@
   .darkmode-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; color: var(--text-muted); transition: all 0.15s; white-space: nowrap; }
   .darkmode-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
+
+  /* ── Collapsible form sections ── */
+  .form-section { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .form-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; background: var(--bg); user-select: none; transition: background 0.15s; }
+  .form-section-header:hover { background: var(--accent-light); }
+  .form-section-header .section-label { margin-bottom: 0; color: var(--text); font-size: 12px; }
+  .form-section-header .section-chevron { font-size: 11px; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .form-section.collapsed .section-chevron { transform: rotate(-90deg); }
+  .form-section.collapsed .form-section-body { display: none; }
+  .form-section-body { padding: 14px 14px 6px; }
+  .form-section-body .form-grid { margin: 0; }
+
 </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7c5cbf">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -726,7 +748,7 @@
 <div class="tab-content" id="tab-library">
   <div class="filter-bar">
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></span>
       <input type="text" id="search" placeholder="Search title or author…" oninput="renderLibrary()">
     </div>
     <select class="filter-select" id="filter-status" onchange="renderLibrary()">
@@ -772,7 +794,7 @@
     <button class="tbr-pill" onclick="setTbrFilter('wishlist', this)">🛒 Still Need to Get</button>
     <button class="tbr-pill" onclick="setTbrFilter('shopping', this)">🛍️ Shopping List</button>
     <div class="tbr-search">
-      <span class="tbr-search-icon">🔍</span>
+      <span class="tbr-search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></span>
       <input type="text" id="tbr-search" placeholder="Search…" oninput="renderTBR()">
     </div>
     <select class="tbr-sort" id="tbr-sort" onchange="renderTBR()">
@@ -937,6 +959,28 @@
             <canvas id="chart-ratings" height="160"></canvas>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Monthly Spending -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <div class="dash-section-title">💸 Monthly Spending</div>
+        <div id="dash-spend-year-label" style="font-size:13px;color:var(--text-muted);font-weight:600;"></div>
+      </div>
+      <div class="dash-section-body">
+        <div id="dash-spend-summary" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;"></div>
+        <div class="charts-row">
+          <div class="chart-wrap" style="flex:2;min-width:240px;">
+            <div class="chart-title">Spent per Month</div>
+            <canvas id="chart-spending" height="160"></canvas>
+          </div>
+          <div class="chart-wrap" style="flex:1;min-width:160px;">
+            <div class="chart-title">By Format</div>
+            <canvas id="chart-spend-format" height="160"></canvas>
+          </div>
+        </div>
+        <div id="dash-spend-months" style="margin-top:14px;"></div>
       </div>
     </div>
     <!-- Challenges summary -->
@@ -1130,47 +1174,34 @@
     </div>
     <div class="modal-body">
 
-      <!-- Goodreads link -->
-      <div class="form-group full" style="margin-bottom:16px;">
-        <label>📗 Goodreads Link</label>
-        <input type="url" id="f-goodreads-url" placeholder="https://www.goodreads.com/book/show/…">
-      </div>
-
-      <!-- Manual cover fallback -->
-      <button class="manual-cover-toggle" onclick="toggleManualCover()">
-        <span id="manual-toggle-arrow">▶</span> Cover not loading? Add one manually
-      </button>
-      <div class="manual-cover-section" id="manual-cover-section">
-        <div class="manual-cover-tabs">
-          <button class="manual-tab-btn active" onclick="switchManualTab('url', this)">🔗 Paste URL</button>
-          <button class="manual-tab-btn" onclick="switchManualTab('upload', this)">📁 Upload File</button>
-        </div>
-        <!-- URL tab -->
-        <div class="manual-tab-pane active" id="manual-tab-url">
-          <div class="url-row">
-            <input type="text" id="f-cover-url" placeholder="https://… (image URL from Goodreads, Google Images, etc.)">
-            <button class="apply-btn" onclick="applyCoverUrl()">Apply</button>
-          </div>
-          <div class="cover-status" id="url-cover-status"></div>
-        </div>
-        <!-- Upload tab -->
-        <div class="manual-tab-pane" id="manual-tab-upload">
-          <label class="upload-label">
-            <input type="file" id="f-cover-file" accept="image/*" onchange="handleFileUpload(this)">
-            <div class="upload-icon">🖼️</div>
-            <div class="upload-text"><strong>Click to choose</strong> or drag &amp; drop<br>JPG, PNG, WebP — any size (auto-resized)</div>
-          </label>
-          <div class="cover-status" id="upload-cover-status"></div>
-        </div>
-      </div>
-
-      <!-- Cover preview + core fields side by side -->
+      <!-- ── Section 1: Core Details (always open) ── -->
+      <!-- Cover preview + core fields -->
       <div class="modal-top">
-        <div class="modal-cover-preview" id="modal-cover-preview">
-          <div class="cover-ph" id="modal-cover-ph" style="background:#c5b9e0;"></div>
-          <div class="cover-ph-label">No cover yet</div>
-        </div>
+        <input type="file" id="cover-click-input" accept="image/*" style="display:none" onchange="handleCoverClick(this)">
+        <label for="cover-click-input" style="display:block;width:80px;cursor:pointer;flex-shrink:0;">
+          <div class="modal-cover-preview" id="modal-cover-preview"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleCoverDrop(event)">
+            <div class="cover-ph" id="modal-cover-ph" style="background:#c5b9e0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span style="font-size:9px;font-weight:700;text-align:center;line-height:1.3;opacity:0.9;">Click or<br>drop image</span>
+            </div>
+            <div class="cover-ph-label">Click or drop</div>
+            <div class="cover-upload-overlay">
+              <span>🖼️</span>
+              <small>Click or drop<br>to add cover</small>
+            </div>
+          </div>
+        </label>
         <div style="flex:1">
+          <div style="margin-bottom:8px;">
+            <input type="text" id="f-cover-url-inline"
+              placeholder="Or paste a cover URL…"
+              style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);outline:none;"
+              onblur="applyInlineCoverUrl(this.value)"
+              onkeydown="if(event.key==='Enter'){applyInlineCoverUrl(this.value);event.preventDefault();}">
+          </div>
           <div class="form-grid">
             <div class="form-group full">
               <label>Title *</label>
@@ -1188,233 +1219,260 @@
               <label>Publication Date</label>
               <input type="date" id="f-pub-date">
             </div>
+            <div class="form-group full">
+              <label>📗 Goodreads Link</label>
+              <input type="url" id="f-goodreads-url" placeholder="https://www.goodreads.com/book/show/…">
+            </div>
           </div>
         </div>
       </div>
 
-      <hr class="section-divider">
-      <div class="section-label">Format &amp; Purchase</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Format</label>
-          <select id="f-format" onchange="toggleFormatExtras()">
-            <option value="Physical">📖 Physical</option>
-            <option value="Kindle">📱 Kindle</option>
-            <option value="Audible">🎧 Audible</option>
-            <option value="Manga">📕 Manga</option>
-          </select>
+      <!-- Cover upload (collapsible) -->
+      <!-- Hidden fields kept for JS compat -->
+      <input type="text" id="f-cover-url" style="display:none">
+      <input type="file" id="f-cover-file" style="display:none">
+      <div id="url-cover-status" style="display:none"></div>
+      <div id="upload-cover-status" style="display:none"></div>
+
+      <!-- ── Section 2: Reading Info (open by default) ── -->
+      <div class="form-section">
+        <div class="form-section-header" onclick="toggleFormSection(this)">
+          <div class="section-label">📖 Reading Info</div>
+          <span class="section-chevron">▼</span>
         </div>
-        <!-- Pages — Physical & Kindle -->
-        <div class="form-group" id="pages-group">
-          <label>Pages</label>
-          <input type="number" id="f-pages" placeholder="e.g. 432" min="1" step="1">
-        </div>
-        <!-- Chapters — Manga only -->
-        <div class="form-group" id="chapters-group" style="display:none">
-          <label id="chapters-label">Chapters</label>
-          <input type="number" id="f-chapters" placeholder="e.g. 200" min="1" step="1">
-        </div>
-        <!-- Volume — Manga only -->
-        <div class="form-group" id="manga-volume-group" style="display:none">
-          <label>Volume #</label>
-          <input type="number" id="f-volume" placeholder="e.g. 3" min="1" step="1">
-          <div class="field-hint">Which volume this entry covers</div>
-        </div>
-        <!-- Duration — Audible only -->
-        <div class="form-group" id="duration-group" style="display:none">
-          <label>Duration</label>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input type="number" id="f-dur-hours" placeholder="hrs" min="0" step="1" style="width:70px">
-            <span style="font-size:13px;color:var(--text-muted)">h</span>
-            <input type="number" id="f-dur-mins" placeholder="min" min="0" max="59" step="1" style="width:70px">
-            <span style="font-size:13px;color:var(--text-muted)">m</span>
+        <div class="form-section-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Status</label>
+              <select id="f-status" onchange="toggleStatusExtras()">
+                <option value="Want to Read">📌 Want to Read</option>
+                <option value="Reading">📖 Reading</option>
+                <option value="Listening">🎧 Listening</option>
+                <option value="Finished">✅ Finished</option>
+                <option value="DNF">❌ DNF</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Rating</label>
+              <div class="star-rating" id="star-rating">
+                <span onclick="setRating(1)">★</span>
+                <span onclick="setRating(2)">★</span>
+                <span onclick="setRating(3)">★</span>
+                <span onclick="setRating(4)">★</span>
+                <span onclick="setRating(5)">★</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Spice 🌶️</label>
+              <div class="chili-rating" id="chili-rating">
+                <span onclick="setSpiceRating(1)">🌶️</span>
+                <span onclick="setSpiceRating(2)">🌶️</span>
+                <span onclick="setSpiceRating(3)">🌶️</span>
+                <span onclick="setSpiceRating(4)">🌶️</span>
+                <span onclick="setSpiceRating(5)">🌶️</span>
+              </div>
+            </div>
+            <!-- Current page — visible when Reading/Listening -->
+            <div class="form-group" id="current-page-group" style="display:none">
+              <label>Current Page</label>
+              <input type="number" id="f-current-page" placeholder="e.g. 247" min="0" step="1">
+              <div class="field-hint">Your progress while reading</div>
+            </div>
+            <!-- DNF reason — visible when DNF -->
+            <div class="form-group" id="dnf-reason-group" style="display:none">
+              <label>Why DNF?</label>
+              <select id="f-dnf-reason">
+                <option value="">— Select a reason —</option>
+                <option>Not my vibe</option>
+                <option>Pacing issues</option>
+                <option>Writing style</option>
+                <option>Too dark/heavy</option>
+                <option>Too slow</option>
+                <option>Characters</option>
+                <option>Plot issues</option>
+                <option>Trigger warnings</option>
+                <option>Life got busy</option>
+                <option>Just not for me</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date Started</label>
+              <input type="date" id="f-date-started">
+            </div>
+            <div class="form-group">
+              <label>Date Finished</label>
+              <input type="date" id="f-date-finished">
+            </div>
+            <div class="form-group">
+              <label>Times Re-read</label>
+              <input type="number" id="f-reread-count" placeholder="0" min="0" step="1">
+              <div class="field-hint">Not counting the first read</div>
+            </div>
+            <div class="form-group">
+              <label>Upcoming Release?</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-upcoming">
+                <label for="f-upcoming">Anticipated release</label>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label>Notes / Review</label>
+              <textarea id="f-notes" placeholder="Your thoughts, quotes, or review…"></textarea>
+            </div>
           </div>
-        </div>
-        <div class="form-group" id="ku-group">
-          <label>Kindle Unlimited</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-ku">
-            <label for="f-ku">Available on KU</label>
-          </div>
-          <div class="field-hint">Reading via KU subscription?</div>
-        </div>
-        <div class="form-group" id="credit-group" style="display:none">
-          <label>Audible Credit</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-credit">
-            <label for="f-credit">Used an Audible credit</label>
-          </div>
-          <div class="field-hint">Leave unchecked if purchased outright</div>
-        </div>
-        <div class="form-group">
-          <label>Owned?</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-owned">
-            <label for="f-owned">I own this book</label>
-          </div>
-          <div class="field-hint">Uncheck for wishlist / still need to buy</div>
-        </div>
-        <div class="form-group">
-          <label>Gift?</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-gift" onchange="toggleGiftPrice()">
-            <label for="f-gift">This was a gift</label>
-          </div>
-        </div>
-        <div class="form-group" id="price-group">
-          <label>Amount Spent ($)</label>
-          <input type="number" id="f-price" placeholder="0.00" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-          <label>Want to Buy?</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-want-to-buy" onchange="toggleBuyFields()">
-            <label for="f-want-to-buy">Add to Shopping List</label>
-          </div>
-          <div class="field-hint">Flag this book so you can track where to buy it</div>
-        </div>
-        <div class="form-group" id="buy-from-group" style="display:none">
-          <label>Where to Buy</label>
-          <input type="text" id="f-buy-from" placeholder="e.g. Amazon, Bookshop.org, local bookstore…">
-        </div>
-        <div class="form-group" id="buy-cost-group" style="display:none">
-          <label>Est. Cost ($)</label>
-          <input type="number" id="f-buy-cost" placeholder="0.00" step="0.01" min="0">
-        </div>
-        <div class="form-group full" id="buy-notes-group" style="display:none">
-          <label>Shopping Notes</label>
-          <input type="text" id="f-buy-notes" placeholder="e.g. wait for sale, check library first, want hardcover edition…">
         </div>
       </div>
 
-      <hr class="section-divider">
-      <div class="section-label">Reading Info</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Status</label>
-          <select id="f-status" onchange="toggleStatusExtras()">
-            <option value="Want to Read">📌 Want to Read</option>
-            <option value="Reading">📖 Reading</option>
-            <option value="Listening">🎧 Listening</option>
-            <option value="Finished">✅ Finished</option>
-            <option value="DNF">❌ DNF</option>
-          </select>
+      <!-- ── Section 3: Series &amp; Universe (collapsed by default) ── -->
+      <div class="form-section collapsed">
+        <div class="form-section-header" onclick="toggleFormSection(this)">
+          <div class="section-label">🔖 Series &amp; Universe</div>
+          <span class="section-chevron">▼</span>
         </div>
-        <div class="form-group">
-          <label>Rating</label>
-          <div class="star-rating" id="star-rating">
-            <span onclick="setRating(1)">★</span>
-            <span onclick="setRating(2)">★</span>
-            <span onclick="setRating(3)">★</span>
-            <span onclick="setRating(4)">★</span>
-            <span onclick="setRating(5)">★</span>
+        <div class="form-section-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Series Name</label>
+              <input type="text" id="f-series" placeholder="e.g. Throne of Glass">
+            </div>
+            <div class="form-group">
+              <label>Book # in Series</label>
+              <input type="number" id="f-series-num" placeholder="1" min="1" step="1">
+            </div>
+            <div class="form-group">
+              <label>Series Complete?</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-series-complete">
+                <label for="f-series-complete">Series is finished</label>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label>Universe / Shared World</label>
+              <input type="text" id="f-universe" placeholder='e.g. "Zodiac Academy Universe", "Cosmere"'>
+              <div class="field-hint">Group books from different series that share the same world</div>
+            </div>
+            <div class="form-group">
+              <label>Universe Order #</label>
+              <input type="number" id="f-universe-order" placeholder="e.g. 4" step="0.5" min="0">
+            </div>
+            <div class="form-group">
+              <label>Book Type</label>
+              <select id="f-book-type">
+                <option value="Main Novel">📖 Main Novel</option>
+                <option value="Novella">📄 Novella</option>
+                <option value="Prequel">⏮️ Prequel</option>
+                <option value="Companion Novel">🔗 Companion Novel</option>
+                <option value="Short Story">✂️ Short Story</option>
+                <option value="Spin-off">🌀 Spin-off</option>
+                <option value="Anthology">📚 Anthology</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Reading Order Note</label>
+              <input type="text" id="f-order-note" placeholder='e.g. "Best read after Book 2"'>
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label>Spice 🌶️</label>
-          <div class="chili-rating" id="chili-rating">
-            <span onclick="setSpiceRating(1)">🌶️</span>
-            <span onclick="setSpiceRating(2)">🌶️</span>
-            <span onclick="setSpiceRating(3)">🌶️</span>
-            <span onclick="setSpiceRating(4)">🌶️</span>
-            <span onclick="setSpiceRating(5)">🌶️</span>
+      </div>
+      <!-- ── Section 4: Format &amp; Purchase (collapsed by default) ── -->
+      <div class="form-section collapsed">
+        <div class="form-section-header" onclick="toggleFormSection(this)">
+          <div class="section-label">📦 Format &amp; Purchase</div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="form-section-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Format</label>
+              <select id="f-format" onchange="toggleFormatExtras()">
+                <option value="Physical">📖 Physical</option>
+                <option value="Kindle">📱 Kindle</option>
+                <option value="Audible">🎧 Audible</option>
+                <option value="Manga">📕 Manga</option>
+              </select>
+            </div>
+            <!-- Pages — Physical & Kindle -->
+            <div class="form-group" id="pages-group">
+              <label>Pages</label>
+              <input type="number" id="f-pages" placeholder="e.g. 432" min="1" step="1">
+            </div>
+            <!-- Chapters — Manga only -->
+            <div class="form-group" id="chapters-group" style="display:none">
+              <label id="chapters-label">Chapters</label>
+              <input type="number" id="f-chapters" placeholder="e.g. 200" min="1" step="1">
+            </div>
+            <!-- Volume — Manga only -->
+            <div class="form-group" id="manga-volume-group" style="display:none">
+              <label>Volume #</label>
+              <input type="number" id="f-volume" placeholder="e.g. 3" min="1" step="1">
+              <div class="field-hint">Which volume this entry covers</div>
+            </div>
+            <!-- Duration — Audible only -->
+            <div class="form-group" id="duration-group" style="display:none">
+              <label>Duration</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="f-dur-hours" placeholder="hrs" min="0" step="1" style="width:70px">
+                <span style="font-size:13px;color:var(--text-muted)">h</span>
+                <input type="number" id="f-dur-mins" placeholder="min" min="0" max="59" step="1" style="width:70px">
+                <span style="font-size:13px;color:var(--text-muted)">m</span>
+              </div>
+            </div>
+            <div class="form-group" id="ku-group">
+              <label>Kindle Unlimited</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-ku">
+                <label for="f-ku">Available on KU</label>
+              </div>
+            </div>
+            <div class="form-group" id="credit-group" style="display:none">
+              <label>Audible Credit</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-credit">
+                <label for="f-credit">Used an Audible credit</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Owned?</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-owned">
+                <label for="f-owned">I own this book</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Gift?</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-gift" onchange="toggleGiftPrice()">
+                <label for="f-gift">This was a gift</label>
+              </div>
+            </div>
+            <div class="form-group" id="price-group">
+              <label>Amount Spent ($)</label>
+              <input type="number" id="f-price" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label>Want to Buy?</label>
+              <div class="checkbox-row">
+                <input type="checkbox" id="f-want-to-buy" onchange="toggleBuyFields()">
+                <label for="f-want-to-buy">Add to Shopping List</label>
+              </div>
+            </div>
+            <div class="form-group" id="buy-from-group" style="display:none">
+              <label>Where to Buy</label>
+              <input type="text" id="f-buy-from" placeholder="e.g. Amazon, Bookshop.org…">
+            </div>
+            <div class="form-group" id="buy-cost-group" style="display:none">
+              <label>Est. Cost ($)</label>
+              <input type="number" id="f-buy-cost" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-group full" id="buy-notes-group" style="display:none">
+              <label>Shopping Notes</label>
+              <input type="text" id="f-buy-notes" placeholder="e.g. wait for sale, check library first…">
+            </div>
           </div>
-        </div>
-        <!-- Current page — visible when Reading/Listening -->
-        <div class="form-group" id="current-page-group" style="display:none">
-          <label>Current Page</label>
-          <input type="number" id="f-current-page" placeholder="e.g. 247" min="0" step="1">
-          <div class="field-hint">Your progress while reading</div>
-        </div>
-        <!-- DNF reason — visible when DNF -->
-        <div class="form-group" id="dnf-reason-group" style="display:none">
-          <label>Why DNF?</label>
-          <select id="f-dnf-reason">
-            <option value="">— Select a reason —</option>
-            <option>Not my vibe</option>
-            <option>Pacing issues</option>
-            <option>Writing style</option>
-            <option>Too dark/heavy</option>
-            <option>Too slow</option>
-            <option>Characters</option>
-            <option>Plot issues</option>
-            <option>Trigger warnings</option>
-            <option>Life got busy</option>
-            <option>Just not for me</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Times Re-read</label>
-          <input type="number" id="f-reread-count" placeholder="0" min="0" step="1">
-          <div class="field-hint">Not counting the first read</div>
-        </div>
-        <div class="form-group">
-          <label>Date Started</label>
-          <input type="date" id="f-date-started">
-        </div>
-        <div class="form-group">
-          <label>Date Finished</label>
-          <input type="date" id="f-date-finished">
-        </div>
-        <div class="form-group">
-          <label>Upcoming Release?</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-upcoming">
-            <label for="f-upcoming">Anticipated release</label>
-          </div>
-        </div>
-        <div class="form-group full">
-          <label>Notes / Review</label>
-          <textarea id="f-notes" placeholder="Your thoughts, quotes, or review…"></textarea>
         </div>
       </div>
 
-      <hr class="section-divider">
-      <div class="section-label">Series Info</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Series Name</label>
-          <input type="text" id="f-series" placeholder="e.g. Throne of Glass">
-        </div>
-        <div class="form-group">
-          <label>Book # in Series</label>
-          <input type="number" id="f-series-num" placeholder="1" min="1" step="1">
-        </div>
-        <div class="form-group">
-          <label>Series Complete?</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="f-series-complete">
-            <label for="f-series-complete">Series is finished</label>
-          </div>
-        </div>
-        <div class="form-group full">
-          <label>Universe / Shared World</label>
-          <input type="text" id="f-universe" placeholder='e.g. "Zodiac Academy Universe", "Cosmere"'>
-          <div class="field-hint">Group books from different series that share the same world</div>
-        </div>
-        <div class="form-group">
-          <label>Universe Order #</label>
-          <input type="number" id="f-universe-order" placeholder="e.g. 4" step="0.5" min="0">
-          <div class="field-hint">Position in the cross-series reading order</div>
-        </div>
-        <div class="form-group">
-          <label>Book Type</label>
-          <select id="f-book-type">
-            <option value="Main Novel">📖 Main Novel</option>
-            <option value="Novella">📄 Novella</option>
-            <option value="Prequel">⏮️ Prequel</option>
-            <option value="Companion Novel">🔗 Companion Novel</option>
-            <option value="Short Story">✂️ Short Story</option>
-            <option value="Spin-off">🌀 Spin-off</option>
-            <option value="Anthology">📚 Anthology</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Reading Order Note</label>
-          <input type="text" id="f-order-note" placeholder='e.g. "Best read after Book 2", "Optional but recommended"'>
-        </div>
-      </div>
 
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -1556,7 +1614,7 @@
     const letter = coverLetter(title);
     const preview = document.getElementById('modal-cover-preview');
     if (!preview.querySelector('img')) {
-      preview.innerHTML = `<div style="width:80px;height:116px;border-radius:6px;background:${col};display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:rgba(255,255,255,0.85);box-shadow:var(--shadow);">${letter}</div><div style="font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;">No cover yet</div>`;
+      preview.innerHTML = `<div style="width:80px;height:116px;border-radius:6px;background:${col};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:22px;font-weight:900;color:rgba(255,255,255,0.9);box-shadow:var(--shadow);border:2px dashed rgba(255,255,255,0.4);"><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z'/><circle cx='12' cy='13' r='4'/></svg><span style='font-size:9px;font-weight:700;text-align:center;line-height:1.3;opacity:0.9;'>Click or<br>drop image</span></div><div style='font-size:9px;color:var(--text-muted);text-align:center;margin-top:4px;'>Add cover</div>`;
     }
   }
 
@@ -1586,6 +1644,11 @@
     const credits = books.filter(b => b.credit).length;
     const gifts = books.filter(b => b.isGift).length;
     const spent = books.reduce((s, b) => s + (parseFloat(b.price) || 0), 0);
+    const _now = new Date();
+    const _thisMonth = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
+    const spentThisMonth = books
+      .filter(b => b.dateAdded && b.dateAdded.startsWith(_thisMonth))
+      .reduce((s, b) => s + (parseFloat(b.price) || 0), 0);
     const finishedBooks = books.filter(b => b.status === 'Finished');
     const totalPages = finishedBooks.reduce((s, b) => s + (b.pages || 0), 0);
     const totalMins = finishedBooks.reduce((s, b) => s + (b.durationMins || 0), 0);
@@ -1602,7 +1665,7 @@
       <div class="stat-card"><div class="stat-value">${ku}</div><div class="stat-label">KU</div></div>
       <div class="stat-card"><div class="stat-value">${credits}</div><div class="stat-label">Credits</div></div>
       <div class="stat-card"><div class="stat-value">${gifts}</div><div class="stat-label">Gifts</div></div>
-      <div class="stat-card"><div class="stat-value">$${spent.toFixed(0)}</div><div class="stat-label">Spent</div></div>
+      <div class="stat-card" title="Total ever spent: $${spent.toFixed(2)}"><div class="stat-value">$${spentThisMonth.toFixed(0)}</div><div class="stat-label">This Month</div></div>
       ${totalPages ? `<div class="stat-card"><div class="stat-value" style="font-size:20px">${totalPages.toLocaleString()}</div><div class="stat-label">Pages Read</div></div>` : ''}
       ${totalMins ? `<div class="stat-card"><div class="stat-value" style="font-size:20px">${fmtDuration(totalMins)}</div><div class="stat-label">Hours Listened</div></div>` : ''}
     `;
@@ -2053,6 +2116,10 @@
     document.getElementById('theme-picker').classList.remove('open');
   }
 
+
+  function toggleFormSection(header) {
+    header.closest('.form-section').classList.toggle('collapsed');
+  }
   function toggleDarkMode() {
     const isDark = document.documentElement.getAttribute('data-dark') === '1';
     setDarkMode(!isDark);
@@ -2180,8 +2247,7 @@
     document.getElementById('f-chapters').value = book?.chapters || '';
     document.getElementById('f-volume').value = book?.volume || '';
     // Reset manual cover section
-    document.getElementById('manual-cover-section').classList.remove('open');
-    document.getElementById('manual-toggle-arrow').textContent = '▶';
+    // Cover section reset
     document.getElementById('f-cover-url').value = '';
     document.getElementById('f-cover-file').value = '';
     document.getElementById('url-cover-status').textContent = '';
@@ -2312,6 +2378,7 @@
       buyCost: parseFloat(document.getElementById('f-buy-cost').value) || null,
       buyNotes: document.getElementById('f-buy-notes').value.trim() || null,
       goodreadsUrl,
+      dateAdded: editingId ? (editBook?.dateAdded || null) : new Date().toISOString().split('T')[0],
     };
     if (editingId) { const idx = books.findIndex(b => b.id === editingId); books[idx] = book; }
     else { books.push(book); }
@@ -2535,6 +2602,33 @@
     };
     img.src = url;
     status.textContent = 'Loading…'; status.className = 'cover-status';
+  }
+
+
+  function applyInlineCoverUrl(url) {
+  url = (url || '').trim();
+  if (!url) return;
+  pendingCoverUrl = url;
+  updateModalCoverImg(url, null);
+}
+
+function handleCoverClick(input) {
+    if (input.files && input.files[0]) handleCoverFile(input.files[0]);
+  }
+  function handleCoverDrop(e) {
+    e.preventDefault();
+    document.getElementById('modal-cover-preview').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleCoverFile(file);
+  }
+  async function handleCoverFile(file) {
+    try {
+      const dataUrl = await resizeImage(file, 300, 450);
+      pendingCoverUrl = dataUrl;
+      updateModalCoverImg(dataUrl, null);
+    } catch(e) {
+      alert('Could not process that image. Try a different file.');
+    }
   }
 
   async function handleFileUpload(input) {
@@ -2914,6 +3008,117 @@
     }).join('')}</div>`;
   }
 
+
+  // ── Monthly Spending ──
+  function renderSpendingSection() {
+    const now   = new Date();
+    const year  = now.getFullYear();
+    const mnths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // Label
+    const lbl = document.getElementById('dash-spend-year-label');
+    if (lbl) lbl.textContent = year;
+
+    // Build monthly data — use dateAdded if available, else dateFinished, else skip
+    const monthly = Array.from({length:12}, () => ({ total:0, physical:0, kindle:0, audible:0, other:0, books:[] }));
+    let totalSpent = 0, totalYearSpent = 0;
+
+    books.forEach(b => {
+      const price = parseFloat(b.price) || 0;
+      if (!price) return;
+      totalSpent += price;
+      const dateRef = b.dateAdded || b.dateFinished || null;
+      if (!dateRef || !dateRef.startsWith(String(year))) return;
+      const m = parseInt(dateRef.split('-')[1]) - 1;
+      if (m < 0 || m > 11) return;
+      monthly[m].total += price;
+      totalYearSpent += price;
+      if (b.format === 'Physical')      monthly[m].physical += price;
+      else if (b.format === 'Kindle')   monthly[m].kindle   += price;
+      else if (b.format === 'Audible')  monthly[m].audible  += price;
+      else                              monthly[m].other    += price;
+      monthly[m].books.push(b);
+    });
+
+    // Summary pills
+    const thisM = now.getMonth();
+    const thisMonthSpent = monthly[thisM].total;
+    const avgMonthly = totalYearSpent / 12;
+    const spendSummary = document.getElementById('dash-spend-summary');
+    if (spendSummary) {
+      spendSummary.innerHTML = [
+        { label: 'This Month',   val: `$${thisMonthSpent.toFixed(2)}`,  color: 'var(--accent)' },
+        { label: `${year} Total`, val: `$${totalYearSpent.toFixed(2)}`,  color: 'var(--physical)' },
+        { label: 'All-Time Total', val: `$${totalSpent.toFixed(2)}`,    color: 'var(--text-muted)' },
+        { label: 'Monthly Avg',  val: `$${avgMonthly.toFixed(2)}`,      color: 'var(--kindle)' },
+      ].map(s => `<div class="pace-stat" style="min-width:110px;">
+        <div class="pace-val" style="font-size:18px;color:${s.color};">${s.val}</div>
+        <div class="pace-lbl">${s.label}</div>
+      </div>`).join('');
+    }
+
+    // Bar chart — spent per month
+    if (typeof Chart !== 'undefined') {
+      destroyChart('spending');
+      const amounts = monthly.map(m => parseFloat(m.total.toFixed(2)));
+      const ctx1 = document.getElementById('chart-spending');
+      if (ctx1) {
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c5cbf';
+        dashCharts['spending'] = new Chart(ctx1.getContext('2d'), {
+          type: 'bar',
+          data: { labels: mnths, datasets: [{ label: '$', data: amounts, backgroundColor: accent, borderRadius: 5 }] },
+          options: { responsive: true, plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$'+v } } } }
+        });
+      }
+
+      // Doughnut — by format
+      destroyChart('spend-format');
+      const fmtTotals = books.reduce((acc, b) => {
+        const p = parseFloat(b.price) || 0; if (!p) return acc;
+        const f = b.format || 'Other';
+        acc[f] = (acc[f]||0) + p; return acc;
+      }, {});
+      const fmtEntries = Object.entries(fmtTotals).filter(e => e[1] > 0);
+      const ctx2 = document.getElementById('chart-spend-format');
+      if (ctx2 && fmtEntries.length) {
+        const fmtColors = { Physical:'#3a8c6e', Kindle:'#e88c2f', Audible:'#0f6b8b', Manga:'#c2447a', Other:'#9b8fb5' };
+        dashCharts['spend-format'] = new Chart(ctx2.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: fmtEntries.map(e => e[0]),
+            datasets: [{ data: fmtEntries.map(e => parseFloat(e[1].toFixed(2))),
+              backgroundColor: fmtEntries.map(e => fmtColors[e[0]] || '#9b8fb5'),
+              borderWidth: 2, borderColor: '#fff' }]
+          },
+          options: { responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12, padding: 6 } },
+              tooltip: { callbacks: { label: ctx => ` $${ctx.raw.toFixed(2)}` } } } }
+        });
+      }
+    }
+
+    // Month-by-month table
+    const tableEl = document.getElementById('dash-spend-months');
+    if (!tableEl) return;
+    const rows = monthly.map((m, i) => {
+      if (!m.total) return '';
+      const isCurrent = i === now.getMonth();
+      const parts = [];
+      if (m.physical) parts.push(`<span style="color:var(--physical)">📖 $${m.physical.toFixed(2)}</span>`);
+      if (m.kindle)   parts.push(`<span style="color:var(--kindle)">📱 $${m.kindle.toFixed(2)}</span>`);
+      if (m.audible)  parts.push(`<span style="color:var(--audible)">🎧 $${m.audible.toFixed(2)}</span>`);
+      if (m.other)    parts.push(`<span style="color:var(--text-muted)">📕 $${m.other.toFixed(2)}</span>`);
+      return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:8px;background:${isCurrent?'var(--accent-light)':'transparent'};margin-bottom:2px;">
+        <div style="width:32px;font-size:12px;font-weight:700;color:${isCurrent?'var(--accent)':'var(--text-muted)'};">${mnths[i]}</div>
+        <div style="width:64px;font-size:15px;font-weight:700;color:${isCurrent?'var(--accent)':'var(--text)'};">$${m.total.toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${m.books.length} book${m.books.length!==1?'s':''}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:4px;">${parts.join('')}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+    tableEl.innerHTML = rows || `<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No spending recorded for ${year} yet. Prices are pulled from the Amount Spent field on each book.</div>`;
+  }
+
   function renderDashboard() {
     loadDashData();
     const now  = new Date();
@@ -2940,6 +3145,7 @@
     renderMonthlyChart(year, finishedBooks);
     renderGenreChart(finishedBooks);
     renderRatingsChart(finishedBooks);
+    renderSpendingSection();
     renderDashChallengeSummary();
     renderBOTM(year);
     renderQuotes();
@@ -3528,14 +3734,10 @@
   if (_savedTheme && THEMES[_savedTheme]) applyTheme(_savedTheme);
 </script>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(r => console.log("SW registered:", r.scope))
-        .catch(e => console.warn("SW registration failed:", e));
-    });
-  }
-</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
