@@ -1,4 +1,4 @@
-const CACHE_NAME = 'book-nook-v3';
+const CACHE_NAME = 'book-nook-v4';
 const STATIC_ASSETS = ['./icon-192.png', './icon-512.png', './apple-touch-icon.png', './manifest.json'];
 
 // Install: pre-cache only static assets (not the HTML)
